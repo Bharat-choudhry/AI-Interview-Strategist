@@ -1,34 +1,63 @@
-import React from 'react'
-import {useNavigate,Link} from "react-router-dom"
+import React, { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 
+const Register = () => {
+    const navigate = useNavigate()
+    const [ username, setUsername ] = useState("")
+    const [ email, setEmail ] = useState("")
+    const [ password, setPassword ] = useState("")
+    const [ error, setError ] = useState("")
 
-const Register=() => {
-    const navigate = useNavigate();
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Handle register logic here
+    const { loading, handleRegister } = useAuth()
+    
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setError("")
+        const result = await handleRegister({ username, email, password })
+        if (result?.success) {
+            navigate("/")
+        } else {
+            setError(result?.message || "Registration failed. Please try again.")
+        }
     }
-    return(
+
+    if (loading) {
+        return (<main><h1>Loading...</h1></main>)
+    }
+
+    return (
         <main>
             <div className="form-container">
                 <h1>Register</h1>
+                {error && <p style={{ color: "#ff4d6d", marginBottom: "1rem", fontSize: "0.875rem", textAlign: "center" }}>{error}</p>}
                 <form onSubmit={handleSubmit}>
-                     <div className="input-group">
+                    <div className="input-group">
                         <label htmlFor="username">Username</label>
-                        <input type="text" id="username" name='username' placeholder='Enter the username'/>
+                        <input
+                            onChange={(e) => { setUsername(e.target.value) }}
+                            value={username}
+                            type="text" id="username" name='username' placeholder='Enter username' required />
                     </div>
                     <div className="input-group">
                         <label htmlFor="email">Email</label>
-                        <input type="email" id="email" name='email' placeholder='Enter the email address'/>
+                        <input
+                            onChange={(e) => { setEmail(e.target.value) }}
+                            value={email}
+                            type="email" id="email" name='email' placeholder='Enter email address' required />
                     </div>
                     <div className="input-group">
                         <label htmlFor="password">Password</label>
-                        <input type="password" id="password" name='password' placeholder='Enter the password'/>
+                        <input
+                            onChange={(e) => { setPassword(e.target.value) }}
+                            value={password}
+                            type="password" id="password" name='password' placeholder='Enter password' required />
                     </div>
-                    <button type="submit" className='button primary-button'>Register</button>
+
+                    <button className='button primary-button'>Register</button>
                 </form>
-                <p>Already have an account? <Link to="/login">Login here</Link></p>
+
+                <p>Already have an account? <Link to={"/login"}>Login</Link> </p>
             </div>
         </main>
     )
