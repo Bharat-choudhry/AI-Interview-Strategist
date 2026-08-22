@@ -6,9 +6,14 @@ const api = axios.create({
     withCredentials: true
 })
 
-export async function register({ username, email, password }) {
+export async function sendOtp({ email }) {
+    const response = await api.post('/api/auth/send-otp', { email })
+    return response.data
+}
+
+export async function register({ username, email, password, otp }) {
     const response = await api.post('/api/auth/register', {
-        username, email, password
+        username, email, password, otp
     })
     return response.data
 }

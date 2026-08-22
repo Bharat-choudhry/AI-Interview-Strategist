@@ -32,7 +32,7 @@ const Loading = () => {
                 <div className="pulsating-core"></div>
             </div>
             <div className="loading-text">
-                Generating your AI Interview Report<span>{dots}</span>
+                Loading...<span>{dots}</span>
             </div>
         </div>
     );

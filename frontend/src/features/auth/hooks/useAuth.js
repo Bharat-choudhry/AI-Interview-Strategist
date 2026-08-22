@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { AuthContext } from "../auth.context";
-import { login, register, logout } from "../services/auth.api";
+import { login, register, logout, sendOtp } from "../services/auth.api";
 
 export const useAuth = () => {
     const context = useContext(AuthContext)
@@ -28,10 +28,23 @@ export const useAuth = () => {
         }
     }
 
-    const handleRegister = async ({ username, email, password }) => {
+    const handleSendOtp = async ({ email }) => {
         setLoading(true)
         try {
-            const data = await register({ username, email, password })
+            const data = await sendOtp({ email })
+            return { success: true, message: data?.message || "OTP sent successfully" }
+        } catch (err) {
+            const message = err.response?.data?.message || "Failed to send OTP"
+            return { success: false, message }
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleRegister = async ({ username, email, password, otp }) => {
+        setLoading(true)
+        try {
+            const data = await register({ username, email, password, otp })
             if (data?.user) {
                 setUser(data.user)
                 return { success: true, user: data.user }
@@ -59,5 +72,5 @@ export const useAuth = () => {
         }
     }
 
-    return { user, loading, handleRegister, handleLogin, handleLogout }
+    return { user, loading, handleRegister, handleLogin, handleLogout, handleSendOtp }
 }

@@ -68,7 +68,7 @@ const Home = () => {
             {/* Page Header */}
             <header className='page-header'>
                 <h1>AI Interview Strategist</h1>
-                <p>Upload your resume and the job description to get a personalized preparation roadmap.</p>
+                <p>Provide your details and job description to generate a custom resume, roadmap, and interview questions.</p>
             </header>
 
             {error && (

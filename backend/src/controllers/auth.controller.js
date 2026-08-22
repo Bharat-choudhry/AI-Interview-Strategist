@@ -2,6 +2,133 @@ const userModel = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const tokenBlacklistModel = require("../models/blacklist.model");
+const OTP=require("../models/otp.model");
+const nodemailer=require("nodemailer");
+
+/**
+ * Nodemailer Transporter Setup (Use App Passwords from Gmail)
+ */
+
+const transporter=nodemailer.createTransport({
+    service:'gmail',
+    auth:{
+        user: process.env.EMAIL_USER, // Apna Gmail id (.env mein daalein)
+        pass: process.env.EMAIL_PASS  // Gmail ka 16-digit 'App Password'
+    }
+
+});
+
+/**
+ * 1. SEND OTP CONTROLLER
+ */
+async function sendOTP(req, res){
+    try {
+        const { email } = req.body;
+
+        // Check if user already exists
+        const existingUser = await userModel.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "User already registered!" });
+        }
+
+        // Generate 6-digit OTP
+        const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Save OTP to Database
+        await OTP.create({
+            email,
+            otp: generatedOtp
+        });
+
+        // Send Email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Verification OTP for Registration',
+            text: `Welcome! Your verification OTP is: ${generatedOtp}. It is valid for 5 minutes.`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.status(200).json({ message: "OTP sent successfully to email" });
+
+    } catch (error) {
+        console.error("OTP Error:", error);
+        res.status(500).json({ 
+            message: "Failed to send OTP",
+            errorDetails: error.message || error.toString() 
+        });
+    }
+};
+
+/**
+ * 2. VERIFY OTP & REGISTER CONTROLLER
+ */
+async function registerWithOTP(req, res){
+    try {
+        const { username, email, password, otp } = req.body;
+
+        // Find the most recent OTP for this email
+        const otpRecord = await OTP.findOne({ email }).sort({ createdAt: -1 });
+
+        if (!otpRecord) {
+            return res.status(400).json({ message: "OTP expired or not found!" });
+        }
+
+        if (otpRecord.otp !== otp) {
+            return res.status(400).json({ message: "Invalid OTP!" });
+        }
+
+        // Check if username/email already exists
+        const isUserExist = await userModel.findOne({
+            $or: [{ username }, { email }]
+         });
+    
+         if(isUserExist) {
+            return res.status(400).json({ message: "Username or email already exists" });
+         }
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // OTP is correct! Now create the user
+        const user = await userModel.create({
+            username,
+            email,
+            password: hashedPassword 
+        });
+
+        // Optional: Delete OTP record after successful registration
+        await OTP.deleteOne({ _id: otpRecord._id });
+
+        // Generate JWT Token
+        const token = jwt.sign(
+            {id: user._id, username: user.username },
+             process.env.JWT_SECRET, 
+             { expiresIn: "1d"}
+        );
+        
+        // Set cookie
+        res.cookie("token", token);
+
+        res.status(201).json({ 
+            message: "User registered successfully!", 
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email
+            } 
+        });
+
+    } catch (error) {
+        console.error("Registration Error:", error);
+        res.status(500).json({ 
+            message: "Registration failed", 
+            errorDetails: error.message || error.toString() 
+        });
+    }
+};
+
 /**
  * @route post /api/auth/register
  * @description Register a new user
@@ -127,6 +254,8 @@ async function getMeController(req, res) {
 }
 
 module.exports = {
+    sendOTP,
+    registerWithOTP,
     registerUserController,
     loginUserController,
     logoutUserController,
