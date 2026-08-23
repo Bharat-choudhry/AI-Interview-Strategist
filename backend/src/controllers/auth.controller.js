@@ -9,13 +9,19 @@ const nodemailer=require("nodemailer");
  * Nodemailer Transporter Setup (Use App Passwords from Gmail)
  */
 
-const transporter=nodemailer.createTransport({
-    service:'gmail',
-    auth:{
-        user: process.env.EMAIL_USER, // Apna Gmail id (.env mein daalein)
-        pass: process.env.EMAIL_PASS  // Gmail ka 16-digit 'App Password'
-    }
-
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // true for 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  },
+  // Force IPv4 if Node >= 18 is trying IPv6 by default
+  tls: {
+    // do not fail on invalid certs
+    rejectUnauthorized: false,
+  }
 });
 
 /**
@@ -111,14 +117,7 @@ async function registerWithOTP(req, res){
         // Set cookie
         res.cookie("token", token, { httpOnly: true, secure: true, sameSite: 'none' });
 
-        res.status(201).json({ 
-            message: "User registered successfully!", 
-            user: {
-                id: user._id,
-                username: user.username,
-                email: user.email
-            } 
-        });
+        res.status(201).json({ message: "User registered successfully!", user: { id: user._id, username: user.username, email: user.email }, token });
 
     } catch (error) {
         console.error("Registration Error:", error);
@@ -165,14 +164,7 @@ const token = jwt.sign(
 
 res.cookie("token", token, { httpOnly: true, secure: true, sameSite: 'none' });
 
-res.status(201).json({
-    message: "User registered successfully",
-    user:{
-        id: user._id,
-        username: user.username,
-        email: user.email
-    }
-})
+res.status(201).json({ message: "User registered successfully", user: { id: user._id, username: user.username, email: user.email }, token })
 }
 
 /**
@@ -205,14 +197,7 @@ async function loginUserController(req,res){
 
     res.cookie("token", token, { httpOnly: true, secure: true, sameSite: 'none' });
 
-    res.status(200).json({
-        message: "User logged in successfully",
-        user:{
-            id: user._id,
-            username: user.username,
-            email: user.email
-        }
-    })
+    res.status(200).json({ message: "User logged in successfully", user: { id: user._id, username: user.username, email: user.email }, token })
 }
 
 async function logoutUserController(req, res) {

@@ -1,10 +1,4 @@
-import axios from "axios"
-
-
-const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "https://ai-interview-strategist.onrender.com",
-    withCredentials: true
-})
+import api from "../../../services/api";
 
 export async function sendOtp({ email }) {
     const response = await api.post('/api/auth/send-otp', { email })

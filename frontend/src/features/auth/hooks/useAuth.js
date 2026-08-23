@@ -16,6 +16,7 @@ export const useAuth = () => {
         try {
             const data = await login({ email, password })
             if (data?.user) {
+                if (data.token) localStorage.setItem("token", data.token);
                 setUser(data.user)
                 return { success: true, user: data.user }
             }
@@ -34,7 +35,8 @@ export const useAuth = () => {
             const data = await sendOtp({ email })
             return { success: true, message: data?.message || "OTP sent successfully" }
         } catch (err) {
-            const message = err.response?.data?.message || "Failed to send OTP"
+            console.error("Backend Error Details:", err.response?.data)
+            const message = err.response?.data?.errorDetails || err.response?.data?.message || "Failed to send OTP"
             return { success: false, message }
         } finally {
             setLoading(false)
@@ -46,6 +48,7 @@ export const useAuth = () => {
         try {
             const data = await register({ username, email, password, otp })
             if (data?.user) {
+                if (data.token) localStorage.setItem("token", data.token);
                 setUser(data.user)
                 return { success: true, user: data.user }
             }
@@ -62,9 +65,11 @@ export const useAuth = () => {
         setLoading(true)
         try {
             await logout()
+            localStorage.removeItem("token");
             setUser(null)
             return { success: true }
         } catch (err) {
+            localStorage.removeItem("token");
             setUser(null)
             return { success: false }
         } finally {
