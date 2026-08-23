@@ -67,19 +67,25 @@ async function sendOTP(req, res){
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: 'Verification OTP for Registration',
-            text: `Welcome! Your verification OTP is: ${generatedOtp}. It is valid for 5 minutes.`
+            subject: "OTP Verification",
+            text: `Your OTP is: ${generatedOtp}`
         };
 
-        await transporter.sendMail(mailOptions);
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log("Email sent successfully!");
+        } catch (emailError) {
+            console.warn("⚠️ Nodemailer failed (Render Free Tier block). Continuing anyway...");
+        }
 
-        res.status(200).json({ message: "OTP sent successfully to email" });
+        // ALWAYS return 200 OK so the frontend can proceed to the OTP input screen!
+        res.status(200).json({ message: "OTP generated successfully! Check Render logs." });
 
     } catch (error) {
-        console.error("OTP Error:", error);
+        console.error("Error sending OTP:", error);
         res.status(500).json({ 
-            message: "Failed to send OTP",
-            errorDetails: error.message || error.toString() 
+            message: "Failed to generate OTP", 
+            errorDetails: error.message || "Unknown error"
         });
     }
 };
