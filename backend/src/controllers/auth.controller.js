@@ -7,7 +7,13 @@ const nodemailer = require("nodemailer");
 const dns = require("dns");
 
 // FORCE IPv4 DNS RESOLUTION TO FIX RENDER'S ENETUNREACH BUG!
-dns.setDefaultResultOrder('ipv4first');
+try {
+  if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+  }
+} catch (e) {
+  console.warn("dns.setDefaultResultOrder not supported on this Node version.");
+}
 
 /**
  * Nodemailer Transporter Setup (Use App Passwords from Gmail)
