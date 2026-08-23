@@ -15,13 +15,13 @@ dns.setDefaultResultOrder('ipv4first');
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // true for 465, false for other ports
+  port: 587,
+  secure: false, // true for 465, false for other ports
+  requireTLS: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
-  // Force IPv4 if Node >= 18 is trying IPv6 by default
   tls: {
     // do not fail on invalid certs
     rejectUnauthorized: false,
