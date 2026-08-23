@@ -2,8 +2,12 @@ const userModel = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const tokenBlacklistModel = require("../models/blacklist.model");
-const OTP=require("../models/otp.model");
-const nodemailer=require("nodemailer");
+const OTP = require("../models/otp.model");
+const nodemailer = require("nodemailer");
+const dns = require("dns");
+
+// FORCE IPv4 DNS RESOLUTION TO FIX RENDER'S ENETUNREACH BUG!
+dns.setDefaultResultOrder('ipv4first');
 
 /**
  * Nodemailer Transporter Setup (Use App Passwords from Gmail)
