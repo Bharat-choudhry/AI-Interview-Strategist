@@ -3,36 +3,10 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const tokenBlacklistModel = require("../models/blacklist.model");
 const OTP = require("../models/otp.model");
-const nodemailer = require("nodemailer");
-const dns = require("dns");
+const { Resend } = require("resend");
 
-// FORCE IPv4 DNS RESOLUTION TO FIX RENDER'S ENETUNREACH BUG!
-try {
-  if (dns.setDefaultResultOrder) {
-    dns.setDefaultResultOrder('ipv4first');
-  }
-} catch (e) {
-  console.warn("dns.setDefaultResultOrder not supported on this Node version.");
-}
-
-/**
- * Nodemailer Transporter Setup (Use App Passwords from Gmail)
- */
-
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // true for 465, false for other ports
-  requireTLS: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    // do not fail on invalid certs
-    rejectUnauthorized: false,
-  }
-});
+// Initialize Resend with your API Key from Render environment variables
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
  * 1. SEND OTP CONTROLLER
@@ -50,36 +24,31 @@ async function sendOTP(req, res){
         // Generate 6-digit OTP
         const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Save OTP to Database
+        // STRICT ERROR HANDLING: Attempt to send email FIRST
+        try {
+            const { data, error } = await resend.emails.send({
+                from: "onboarding@resend.dev", // Resend default test domain. Upgrade your Resend account to use a custom domain.
+                to: email,
+                subject: "Your OTP for Registration",
+                html: `<p>Your OTP is: <strong>${generatedOtp}</strong></p>`
+            });
+
+            if (error) {
+                console.error("Resend API Error:", error);
+                return res.status(500).json({ message: "Failed to send OTP email. Please try again." });
+            }
+        } catch (emailError) {
+            console.error("Resend Exception:", emailError);
+            return res.status(500).json({ message: "Failed to send OTP email. Please try again." });
+        }
+
+        // ONLY save OTP to Database if the email successfully sent
         await OTP.create({
             email,
             otp: generatedOtp
         });
 
-        // --- RENDER FREE TIER WORKAROUND ---
-        // Render blocks outbound SMTP, causing Nodemailer to fail.
-        // We print the OTP to the Render server logs so you can still test your app!
-        console.log(`\n========================================`);
-        console.log(`🔑 DEVELOPMENT OTP FOR ${email}: ${generatedOtp}`);
-        console.log(`========================================\n`);
-
-        // Send Email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: "OTP Verification",
-            text: `Your OTP is: ${generatedOtp}`
-        };
-
-        try {
-            await transporter.sendMail(mailOptions);
-            console.log("Email sent successfully!");
-        } catch (emailError) {
-            console.warn("⚠️ Nodemailer failed (Render Free Tier block). Continuing anyway...");
-        }
-
-        // ALWAYS return 200 OK so the frontend can proceed to the OTP input screen!
-        res.status(200).json({ message: "OTP generated successfully! Check Render logs." });
+        res.status(200).json({ message: "OTP sent successfully to email" });
 
     } catch (error) {
         console.error("Error sending OTP:", error);
