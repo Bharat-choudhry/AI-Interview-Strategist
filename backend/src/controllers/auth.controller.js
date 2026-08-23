@@ -5,8 +5,8 @@ const tokenBlacklistModel = require("../models/blacklist.model");
 const OTP = require("../models/otp.model");
 const { Resend } = require("resend");
 
-// Initialize Resend with your API Key from Render environment variables
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend safely so it doesn't crash if API key is missing locally
+const resend = new Resend(process.env.RESEND_API_KEY || "re_dummy_key");
 
 /**
  * 1. SEND OTP CONTROLLER
@@ -27,7 +27,7 @@ async function sendOTP(req, res){
         // STRICT ERROR HANDLING: Attempt to send email FIRST
         try {
             const { data, error } = await resend.emails.send({
-                from: "onboarding@resend.dev", // Resend default test domain. Upgrade your Resend account to use a custom domain.
+                from: "onboarding@resend.dev", // Resend default test domain
                 to: email,
                 subject: "Your OTP for Registration",
                 html: `<p>Your OTP is: <strong>${generatedOtp}</strong></p>`
@@ -35,11 +35,17 @@ async function sendOTP(req, res){
 
             if (error) {
                 console.error("Resend API Error:", error);
-                return res.status(500).json({ message: "Failed to send OTP email. Please try again." });
+                return res.status(500).json({ 
+                    message: "Failed to send OTP email. Please try again.",
+                    errorDetails: error.message 
+                });
             }
         } catch (emailError) {
             console.error("Resend Exception:", emailError);
-            return res.status(500).json({ message: "Failed to send OTP email. Please try again." });
+            return res.status(500).json({ 
+                message: "Failed to send OTP email. Please try again.",
+                errorDetails: emailError.message 
+            });
         }
 
         // ONLY save OTP to Database if the email successfully sent
@@ -193,17 +199,12 @@ async function loginUserController(req,res){
 }
 
 async function logoutUserController(req, res) {
-     //console.log("Logout route hit");
     const token =req.cookies.token;
-     //console.log("Token:", token);
-     //console.log("Cookies:", req.cookies);
      
     if(token){
         await tokenBlacklistModel.create({ token });
-          //console.log("Token saved to blacklist");
     }
     
-
     res.clearCookie("token", { httpOnly: true, secure: true, sameSite: 'none' });
 
     res.status(200).json({ 
@@ -218,16 +219,24 @@ async function logoutUserController(req, res) {
  */
 
 async function getMeController(req, res) {
-    const user = await userModel.findById(req.user.id);
-
-    res.status(200).json({
-        message: "User details fetched successfully",
-        user: {
-            id: user._id,
-            username: user.username,
-            email: user.email
+    try {
+        const user = await userModel.findById(req.user.id);
+        
+        if (!user) {
+            return res.status(401).json({ message: "User not found" });
         }
-    });
+
+        res.status(200).json({
+            message: "User details fetched successfully",
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Server error in getMe", errorDetails: err.message });
+    }
 }
 
 module.exports = {
