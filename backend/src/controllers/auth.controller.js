@@ -56,6 +56,13 @@ async function sendOTP(req, res){
             otp: generatedOtp
         });
 
+        // --- RENDER FREE TIER WORKAROUND ---
+        // Render blocks outbound SMTP, causing Nodemailer to fail.
+        // We print the OTP to the Render server logs so you can still test your app!
+        console.log(`\n========================================`);
+        console.log(`🔑 DEVELOPMENT OTP FOR ${email}: ${generatedOtp}`);
+        console.log(`========================================\n`);
+
         // Send Email
         const mailOptions = {
             from: process.env.EMAIL_USER,
