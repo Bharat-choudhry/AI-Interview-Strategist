@@ -1,23 +1,15 @@
 const { Router } = require('express')
 const authController = require("../controllers/auth.controller")
 const authMiddleware = require("../middlewares/auth.middleware")
-const { sendOTP, registerWithOTP } = require('../controllers/auth.controller');
+
 const authRouter = Router()
 
 /**
- * @route POST /api/auth/send-otp
- * @description Send OTP to user email
- * @access Public
- */
-authRouter.post('/send-otp', sendOTP);
-
-/**
  * @route POST /api/auth/register
- * @description Register a new user WITH OTP
+ * @description Register a new user
  * @access Public
  */
-// FIX: Purana 'authController.registerUserController' hata diya aur 'registerWithOTP' lagaya
-authRouter.post("/register", registerWithOTP);
+authRouter.post("/register", authController.registerUserController);
 
 /**
  * @route POST /api/auth/login
@@ -39,6 +31,5 @@ authRouter.get("/logout", authController.logoutUserController)
  * @access private
  */
 authRouter.get("/get-me", authMiddleware.authUser, authController.getMeController)
-
 
 module.exports = authRouter;
