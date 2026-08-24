@@ -46,7 +46,8 @@ Login page:
 
 resume:
 
-blob:https://ai-interview-strategist.vercel.app/200af988-9979-4a33-9df5-c4c012e124be
+[resume_preview (4).pdf](https://github.com/user-attachments/files/31375102/resume_preview.4.pdf)
+
 
 
 
