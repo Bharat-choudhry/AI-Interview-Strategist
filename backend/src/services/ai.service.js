@@ -164,19 +164,20 @@ async function generateInterviewReport({ resume = "", selfDescription = "", jobD
 }
 
 async function generatePdfFromHtml(htmlContent) {
-    let browser = null
+    let browser = null;
     try {
         browser = await puppeteer.launch({
             headless: "new",
             args: [
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu"
+                '--no-sandbox', 
+                '--disable-setuid-sandbox', 
+                '--disable-dev-shm-usage', 
+                '--disable-gpu'
             ]
-        })
-        const page = await browser.newPage()
-        await page.setContent(htmlContent, { waitUntil: "domcontentloaded", timeout: 20000 })
+        });
+        
+        const page = await browser.newPage();
+        await page.setContent(htmlContent, { waitUntil: "domcontentloaded", timeout: 20000 });
 
         const pdfBuffer = await page.pdf({
             format: "A4",
@@ -187,12 +188,18 @@ async function generatePdfFromHtml(htmlContent) {
                 left: "12mm",
                 right: "12mm"
             }
-        })
+        });
 
-        return pdfBuffer
+        return pdfBuffer;
+    } catch (error) {
+        console.error("Puppeteer PDF Generation Error:", error);
+        throw new Error(JSON.stringify({
+            message: "Failed to generate PDF. Puppeteer crashed.",
+            details: error.message
+        }));
     } finally {
         if (browser) {
-            await browser.close()
+            await browser.close();
         }
     }
 }
