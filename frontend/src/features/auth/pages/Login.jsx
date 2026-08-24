@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import "../auth.form.scss"
 import { useAuth } from '../hooks/useAuth'
+import Loading from '../../interview/components/Loading'
 
 const Login = () => {
     const { loading, handleLogin } = useAuth()
@@ -23,7 +24,7 @@ const Login = () => {
     }
 
     if (loading) {
-        return (<main><h1>Loading...</h1></main>)
+        return <Loading />
     }
 
     return (

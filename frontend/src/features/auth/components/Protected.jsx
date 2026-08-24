@@ -2,12 +2,13 @@ import { useAuth } from '../hooks/useAuth.js'
 import React from 'react'
 import { Navigate } from "react-router-dom"
 import Navbar from '../../../components/Navbar.jsx'
+import Loading from '../../interview/components/Loading.jsx'
 
 const Protected = ({ children }) => {
     const { loading, user } = useAuth()
 
     if (loading) {
-        return (<main><h1>Loading...</h1></main>)
+        return <Loading />
     }
 
     if (!user) {
@@ -23,5 +24,3 @@ const Protected = ({ children }) => {
 }
 
 export default Protected
-
- 
