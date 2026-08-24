@@ -1,7 +1,8 @@
 const { GoogleGenAI } = require("@google/genai")
 const { z } = require("zod")
 const { zodToJsonSchema } = require("zod-to-json-schema")
-const puppeteer = require("puppeteer")
+const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer-core');
 
 const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENAI_API_KEY
@@ -167,21 +168,20 @@ async function generatePdfFromHtml(htmlContent) {
     let browser = null;
     try {
         browser = await puppeteer.launch({
-            headless: "new",
-            args: [
-                '--no-sandbox', 
-                '--disable-setuid-sandbox', 
-                '--disable-dev-shm-usage', 
-                '--disable-gpu'
-            ]
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+            ignoreHTTPSErrors: true,
         });
         
         const page = await browser.newPage();
-        await page.setContent(htmlContent, { waitUntil: "domcontentloaded", timeout: 20000 });
+        await page.setContent(htmlContent, { waitUntil: "domcontentloaded", timeout: 60000 });
 
         const pdfBuffer = await page.pdf({
             format: "A4",
             printBackground: true,
+            timeout: 60000,
             margin: {
                 top: "15mm",
                 bottom: "15mm",
@@ -192,7 +192,8 @@ async function generatePdfFromHtml(htmlContent) {
 
         return pdfBuffer;
     } catch (error) {
-        console.error("Puppeteer PDF Generation Error:", error);
+        console.error("Puppeteer PDF Generation Error Message:", error.message);
+        console.error("Puppeteer PDF Generation Error Stack:", error.stack);
         throw new Error(JSON.stringify({
             message: "Failed to generate PDF. Puppeteer crashed.",
             details: error.message
