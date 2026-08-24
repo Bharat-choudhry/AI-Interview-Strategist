@@ -18,22 +18,34 @@ Secure Architecture: Implements a robust JWT-based authentication system with en
  
 <img width="2940" height="1912" alt="BCEEF83F-F723-414F-BD9A-196D11A0C961" src="https://github.com/user-attachments/assets/49754c86-0cb6-4ff3-90fd-670018312964" />
 
+
 Technical Questions:
+
 <img width="2940" height="1912" alt="A01C656C-5A60-45DD-97A7-D73FEF5D4402" src="https://github.com/user-attachments/assets/46fe25cb-6762-4caf-81e6-83a438e5620f" />
 
+
 Behavioral Questions:
+
 <img width="2940" height="1912" alt="9B03993A-CFEF-44F5-8CE8-1AC088ECAE80" src="https://github.com/user-attachments/assets/c79bff49-d0d0-4448-90a3-ba9ba183f842" />
 
+
 Road map:
+
 <img width="2940" height="1912" alt="229D8FAB-782D-4CC6-ABF1-A490807CDB9B" src="https://github.com/user-attachments/assets/6c9ac6c0-fe3f-4778-80e5-1213ce336ae6" />
 
-Login page;
+
+Register page;
+
 <img width="2940" height="1912" alt="22DFDAC9-D1B9-416A-927B-C2D79C956417" src="https://github.com/user-attachments/assets/00c012ee-409e-41fd-9d26-4e75b3816190" />
 
-Rrgister page:
+
+Login page:
+
 <img width="2940" height="1912" alt="DC093D55-4944-4B91-A70C-FDB45AE9328B" src="https://github.com/user-attachments/assets/ca139f26-c863-4b9d-96a8-dc9cedbeabdd" />
 
+
 resume:
+
 blob:https://ai-interview-strategist.vercel.app/200af988-9979-4a33-9df5-c4c012e124be
 
 
